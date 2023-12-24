@@ -5,7 +5,6 @@ const ApiFeatures = require('../utils/ApiFeatures');
 
 exports.getAll =model =>{ return catchAsync(async (req, res, next) => {
     let filter = {};
-    if (req.params.tourId) filter = { tour: req.params.tourId }
 
     const features = new ApiFeatures(model.find(filter), req.query)
       .filter()

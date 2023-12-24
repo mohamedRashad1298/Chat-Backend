@@ -9,12 +9,11 @@ const handleCastError = (error) => {
 const handleDuplicateFields = (error) => {
   const errMsg = error.errmsg.match(/(["'])(\\?.)*?\1/)[0];
   const message = `Duplicate Field value : ${errMsg} please use anthor value`;
-
   return new AppError(message, 400);
 };
 const handleValidatorError = (error) => {
-  const message = Object.values(error.errors).map((el) => el.message);
 
+  const message = Object.values(error.errors).map((el) => el.message);
   return new AppError(`Invalid input Data .${message.join('. ')}`, 400);
 };
 
@@ -42,7 +41,8 @@ const errDevMode = (err, res) => {
     // })
 };
 
-const errProdMode = (err,req, res) => {
+const errProdMode = (err, res) => {
+  console.log(err)
   if (err.isOperational) {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
@@ -51,8 +51,7 @@ const errProdMode = (err,req, res) => {
       message: err.message,
     });
   } else {
-    console.error('Error 🔥', err);
-
+    // console.error('Error 🔥', err);
     res.status(err.statusCode || 500).json({
       status: 500,
       message: 'something went very worrng trying to fix soon 🔧',
@@ -65,14 +64,16 @@ module.exports = (err, req, res, next) => {
     errDevMode(err, res);
   } else if (process.env.NODE_ENV === 'production') {
     let error = {};
-    console.log(err);
+   
     if (err.name === 'CastError') {
       error = handleCastError(err);
     }
     if (err.code === 11000) {
+   
       error = handleDuplicateFields(err);
     }
     if (err.name === 'ValidationError') {
+      
       error = handleValidatorError(err);
     }
     if (err.name === 'JsonWebTokenError') {
@@ -81,7 +82,7 @@ module.exports = (err, req, res, next) => {
     if (err.name === 'TokenExpiredError') {
       error = handleExpiredTokenError(err);
     }
-
+error = err
 
     errProdMode(error, res);
   }

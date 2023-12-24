@@ -42,7 +42,6 @@ await sharp(req.file.buffer)
     .resize(500, 500)
     .toFormat('jpeg')
     .toFile(`public/img/users/${req.file.filename}`);
-
     next()
 };
 
@@ -60,7 +59,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   const id = req.user.id;
 
   const filterbody = filterObject(req.body, 'name', 'email');
-  if (req.file) filterbody.photo = req.file.filename;
+  if (req.file) filterbody.photo = req.body.photo;
 
   const user = await User.findByIdAndUpdate(id, filterbody, {
     new: true,
@@ -82,12 +81,26 @@ const filterObject = (obj, ...fields) => {
 };
 
 // get All User
-exports.getAllUsers = handelFactory.getAll(User);
+exports.getAllUsers = catchAsync(async(req,res,next)=>{
+  const keyword = req.query.search
+  ? {
+      $or: [
+        { name: { $regex: req.query.search, $options: "i" } },
+        { email: { $regex: req.query.search, $options: "i" } },
+      ],
+    }
+  : {};
+
+const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
+res.status(200).json({
+  status:"success",
+  users
+})
+});
 
 // creat User
 exports.createUser = catchAsync(async (req, res, next) => {
   const user = await User.create(req.body);
-
   res.status(200).json({
     status: 'success',
     user,

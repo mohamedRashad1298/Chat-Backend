@@ -24,7 +24,6 @@ const sendTokenRespone = (user, statusCode, res) => {
     httpOnly: true
   };
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-
   res.cookie('jwt', token, cookieOptions);
 
   user.password = undefined
@@ -46,11 +45,12 @@ exports.signUp = catchAsync(async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
+    photo:req.body.photo
   });
-  const url= `${req.protocol}://${req.get(
-    'host',
-  )}/me`
-await new Email(newUser,url).sendWelcome()
+//   const url= `${req.protocol}://${req.get(
+//     'host',
+//   )}/me`
+// await new Email(newUser,url).sendWelcome()
   sendTokenRespone(newUser, 200, res);
 });
 
@@ -79,6 +79,7 @@ exports.logIn = catchAsync(async (req, res, next) => {
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
+
   let token;
   if (
     req.headers.authorization &&
@@ -88,7 +89,6 @@ exports.protect = catchAsync(async (req, res, next) => {
   }else if(req.cookies.jwt){
 token =req.cookies.jwt
   } 
-
   if (!token) {
     return next(
       new AppError('you must signup or login to get to this route', 401),
